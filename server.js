@@ -42,21 +42,23 @@ app.get('/api', (req, res) => {
       {method: 'GET', path: '/api', description: 'Describes all available endpoints'},
       {method: 'GET', path: '/api/profile', description: 'Data about me'},
       {method: 'GET', path: '/api/books/', description: 'Get All books information'},
-      // TODO: Write other API end-points description here like above
+      {method: 'POST', path: '/api/books/', description: 'Add a new book'},
+      {method: 'PUT', path: '/api/books/:id', description: 'Modify a book\'s information'},
+      {method: 'DELETE', path: '/api/books/:id', description: 'Remove a book'}
     ]
   })
 });
 // TODO:  Fill the values
 app.get('/api/profile', (req, res) => {
   res.json({
-    'name': '',
-    'homeCountry': '',
-    'degreeProgram': '',//informatics or CSE.. etc
-    'email': '',
+    'name': 'Michael Alan Acevedo Salazar',
+    'homeCountry': 'Chile',
+    'degreeProgram': 'TumExchange',//informatics or CSE.. etc
+    'email': 'michael.acevedo@tum.de',
     'deployedURLLink': '',//leave this blank for the first exercise
     'apiDocumentationURL': '', //leave this also blank for the first exercise
-    'currentCity': '',
-    'hobbies': []
+    'currentCity': 'Munich',
+    'hobbies': ['Music', 'Video games']
 
   })
 });
@@ -83,7 +85,7 @@ app.post('/api/books/', (req, res) => {
   /*
    * New Book information in req.body
    */
-  console.log(req.body);
+  // console.log(req.body);
   /*
    * TODO: use the books model and create a new object
    * with the information in req.body
@@ -91,8 +93,12 @@ app.post('/api/books/', (req, res) => {
   /*
    * return the new book information object as json
    */
-  var newBook = {};
-  res.json(newBook);
+  db.books.create(req.body, (err, newBook) => {
+    if (err) {
+      throw err;
+    }
+    res.json(newBook);
+  })
 });
 
 /*
@@ -104,7 +110,6 @@ app.put('/api/books/:id', (req, res) => {
    */
   const bookId = req.params.id;
   const bookNewData = req.body;
-  console.log(`book ID = ${bookId} \n Book Data = ${bookNewData}`);
 
   /*
    * TODO: use the books model and find using the bookId and update the book information
@@ -112,9 +117,18 @@ app.put('/api/books/:id', (req, res) => {
   /*
    * Send the updated book information as a JSON object
    */
-  var updatedBookInfo = {};
-  res.json(updatedBookInfo);
+
+  db.books.updateOne({_id: bookId}, bookNewData, (err, updatedBook) => {
+    if (err) {
+      throw err;
+    }
+    db.books.find({_id: bookId}, (error, book) => {
+      if (error) throw error;
+      res.json(book);
+    });
+  })
 });
+
 /*
  * Delete a book based upon the specified ID
  */
@@ -130,8 +144,13 @@ app.delete('/api/books/:id', (req, res) => {
   /*
    * Send the deleted book information as a JSON object
    */
-  var deletedBook = {};
-  res.json(deletedBook);
+  db.books.find({_id: bookId}, (error, book) => {
+    if (error) throw error;
+    db.books.deleteOne({_id: bookId}, (err, deleteInfo) => {
+      if (err) throw err;
+      res.json(book);
+    })
+  });
 });
 
 
